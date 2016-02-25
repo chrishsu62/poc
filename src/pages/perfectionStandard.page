@@ -38,5 +38,5 @@ body button, body .x-btn, body .btn, body .x-date-mp-ok, body .x-date-mp-cancel,
 .wide{
 width:160px;
 }
-
+</style>
 </apex:page>

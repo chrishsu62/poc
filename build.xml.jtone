@@ -1,0 +1,44 @@
+<project name="TLSv1.0 Warning messages" default="test" basedir="." xmlns:sf="antlib:com.salesforce">
+
+    <property file="build.properties"/>
+    <property environment="env"/>
+    <property name="sf.maxPoll" value="20"/>
+
+    <taskdef resource="com/salesforce/antlib.xml" uri="antlib:com.salesforce">
+        <classpath>
+            <pathelement location="ant-salesforce.jar" />        	
+        </classpath>
+    </taskdef>
+
+    <target name="init_source">
+        <input message="Please enter login url:" addproperty="source.sf.serverurl" />
+        <input message="Please enter source username:" addproperty="source.sf.username" />
+        <input message="Please enter source password:" addproperty="source.sf.password" />
+        <condition property="source.sf.sessionId" value=""> <not> <isset property="source.sf.sessionId"/> </not> </condition>
+    </target>
+
+    <target name="init_target">
+        <input message="Please enter target url:" addproperty="target.sf.serverurl" />
+        <input message="Please enter target username:" addproperty="target.sf.username" />
+        <input message="Please enter target password:" addproperty="target.sf.password" />
+        <condition property="target.sf.sessionId" value=""> <not> <isset property="target.sf.sessionId"/> </not> </condition>
+    </target>
+
+    <target name="retrieve" depends="init_source">
+        <mkdir dir="src"/>
+        <sf:retrieve username="${source.sf.username}" password="${source.sf.password}" sessionId="${source.sf.sessionId}" serverurl="${source.sf.serverurl}" maxPoll="${sf.maxPoll}" retrieveTarget="src" unpackaged="package.xml"/>
+    </target>
+
+    <target name="deploy" depends="init_target">
+      <sf:deploy username="${target.sf.username}" password="${target.sf.password}" sessionId="${target.sf.sessionId}" serverurl="${target.sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="src" rollbackOnError="true"/>
+    </target>
+
+    <target name="clean" depends="init_target">
+      <sf:deploy username="${target.sf.username}" password="${target.sf.password}" sessionId="${target.sf.sessionId}" serverurl="${target.sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="clean" rollbackOnError="false" logType="Detail"/>
+    </target>
+
+    <target name="testdeploy" depends="init_source">
+      <sf:deploy username="${source.sf.username}" password="${source.sf.password}" sessionId="${source.sf.sessionId}" serverurl="${source.sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="temp" rollbackOnError="true" logType="Detail" />
+    </target>
+
+</project>
