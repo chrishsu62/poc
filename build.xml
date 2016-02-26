@@ -1,118 +1,195 @@
-<project name="TLSv1.0 Warning messages" default="test" basedir="." xmlns:sf="antlib:com.salesforce">
-
-    <property file="build.properties"/>
-    <property environment="env"/>
-    <property name="sf.maxPoll" value="20"/>
-
-	<taskdef resource="net/sf/antcontrib/antlib.xml"/>
-    <taskdef resource="com/salesforce/antlib.xml" uri="antlib:com.salesforce">
-        <classpath>
-            <pathelement location="ant-salesforce.jar" />        	
-        </classpath>
-    </taskdef>
-
-    <target name="init_source">
-        <input message="Please enter login url:" addproperty="source.sf.serverurl" />
-        <input message="Please enter source username:" addproperty="source.sf.username" />
-        <input message="Please enter source password:" addproperty="source.sf.password" />
-        <condition property="source.sf.sessionId" value=""> <not> <isset property="source.sf.sessionId"/> </not> </condition>
-    </target>
-	
-	
-    <target name="init_source_refresh">
-        <input message="Please enter login url:" addproperty="source.sf.serverurl" />
-        <input message="Please enter source username:" addproperty="source.sf.username" />
-        <input message="Please enter source password:" addproperty="source.sf.password" />
-        <input message="Please enter branch:" addproperty="source.git.refresh.branch" />
-        <condition property="source.sf.sessionId" value=""> <not> <isset property="source.sf.sessionId"/> </not> </condition>
-    </target>
-
-    <target name="init_target">
-        <input message="Please enter target url:" addproperty="target.sf.serverurl" />
-        <input message="Please enter target username:" addproperty="target.sf.username" />
-        <input message="Please enter target password:" addproperty="target.sf.password" />
-        <condition property="target.sf.sessionId" value=""> <not> <isset property="target.sf.sessionId"/> </not> </condition>
-    </target>
-
-    <target name="retrieve" depends="init_source">
-        <mkdir dir="src"/>
-        <sf:retrieve username="${source.sf.username}" password="${source.sf.password}" serverurl="${source.sf.serverurl}" maxPoll="${sf.maxPoll}" retrieveTarget="src" unpackaged="src/package.xml"/>
-    </target>
-
-    <target name="deploy" depends="init_target">
-      <sf:deploy username="${target.sf.username}" password="${target.sf.password}" sessionId="${target.sf.sessionId}" serverurl="${target.sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="src" rollbackOnError="true"/>
-    </target>
-
-    <target name="clean" depends="init_target">
-      <sf:deploy username="${target.sf.username}" password="${target.sf.password}" sessionId="${target.sf.sessionId}" serverurl="${target.sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="clean" rollbackOnError="false" logType="Detail"/>
-    </target>
-
-    <target name="listMetadata" depends="init_source">
-      <sf:listMetadata username="${source.sf.username}" password="${source.sf.password}" serverurl="${source.sf.serverurl}" metadataType="ApexClass"/>
-    </target>
-	
-	<target name="bulkRetrieve">
-      <sf:bulkRetrieve username="${source.sf.username}" password="${source.sf.password}" serverurl="${source.sf.serverurl}" maxPoll="${sf.maxPoll}" metadataType="${varMetadataType}" retrieveTarget="src"/>
-    </target>
-	
-	<target name="git-status">
-        <git command="status" options=""/>
-    </target>
-		
-	<target name="git-checkout-master">
-        <git command="checkout" options="master"/>
-    </target>
-	
-	<target name="git-delete-refresh-branch">
-        <git command="branch -d" options="${source.git.refresh.branch}"/>
-    </target>
-	
-	<target name="git-create-refresh-branch" depends="git-checkout-master, git-delete-refresh-branch">
-        <git command="checkout -b" options="${source.git.refresh.branch}"/>
-    </target>
-	
-	<target name="bulkRetrieveIterate">
-        <loadfile property="list" srcfile="metadataType.properties"/>
-		<for param="metadatatype" list="${list}" delimiter="${line.separator}">
-			<sequential>
-				<echo message="@{metadatatype}"/>
-				<antcall target="bulkRetrieve">
-					<param name="varMetadataType" value="@{metadatatype}"/>
-				</antcall>
-			</sequential>
-		</for>
-    </target>
-	
-	<target name="git-remove-package">
-		<git command="rm" options="rm -f src/package.xml"/>
-	</target>
-	
-	<target name="git-stage-commit" depends="git-remove-package">
-        <git command="add" options="-A ."/>
-    </target>
-		
-	<target name="git-commit" depends="git-remove-package, git-stage-commit">
-        <git command="commit" options='-m "Commit Refresh branch ${source.git.refresh.branch}"'/>
-    </target>
-	
-	<target name="git-merge-to-master" depends="init_source_refresh, git-create-refresh-branch, bulkRetrieveIterate, git-commit, git-checkout-master" >
-        <git command="merge" options="${source.git.refresh.branch} master"/>
-    </target>
-	
-	<macrodef name="git">
-        <attribute name="command" />
-        <attribute name="options" default="" />
-        <attribute name="dir" default="" />
-        <attribute name="failerror" default="false" />
-        <element name="args" optional="true" />
-        <sequential>
-            <echo message="git dir @{dir}" />
-            <echo message="git @{command}" />
-            <exec executable="git" dir="@{dir}" failonerror="@{failerror}">
-                <arg line="@{command} @{options}" />
-                <args />
-            </exec>
-        </sequential>
-    </macrodef>
-
+<project name="Farmers" default="deploy" basedir="." xmlns:sf="antlib:com.salesforce" xmlns:if="ant:if" xmlns:unless="ant:unless">
+ 
+ <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+ 
+  <setproxy proxyhost="10.142.105.252" proxyport="80"/>
+ 
+  <tstamp/>
+ 
+  <property environment="env"/>
+ 
+  <!--================ build defaults ===============================-->
+  <property name="build.release" value="${DSTAMP}-${TSTAMP}"/>
+  <property name="build.source" value="../"/>
+  <property name="build.tmpdir" value="release/tmp" />
+ 
+  <!--================ deoloy defaults ===============================-->
+  <property name="deploy.checkOnly" value="true"/>
+  <property name="deploy.allowMissing" value="true"/>
+  <property name="deploy.testLevel" value="RunLocalTests"/>
+ 
+  <!--================ org defaults ===============================-->
+  <property name="org.target" value="devorg"/>
+<!--  <property file="./${org.target}.properties"/> -->
+  <property name="org.username" value="${username}" />
+  <property name="org.password"  value="${password}" />
+  <property name="org.serverUrl"  value="${serverurl}" />
+  <property name="org.serverUrl" value="https://login.salesforce.com"/>
+ 
+  <!--================ source defaults ===============================-->
+  <property name="source.packageXml" value="${build.tmpdir}/src/package.xml" />
+ 
+  <!--================ metadata copy target ==========================-->
+               
+  <target name="copyMetadata" depends="clean,diff">
+	<copy todir="${build.tmpdir}">
+  	<fileset dir="${build.source}">
+    	<includesfile name="${build.tmpdir}/diff.txt"/>
+    	<includesfile name="${build.tmpdir}/diff-meta.txt"/>
+    	<exclude name="**/*.profile"/>
+    	<exclude name="**/destructiveChanges/*"/>
+    	<exclude name="**/build/**"/>
+    	<excludesfile name="${build.source}/.gitignore"/>
+    	<!-- Always include readme. This will handle no diff situation -->
+    	<include name="${build.source}/Readme.md"/>
+    	<present present="srconly" targetdir="${build.tmpdir}"/>
+  	</fileset>
+	</copy>
+  </target>
+ 
+  <target name="copyProfiles" depends="clean,diff">
+	<copy todir="${build.tmpdir}">
+  	<fileset dir="${build.source}">
+    	<includesfile name="${build.tmpdir}/diff.txt"/>
+    	<!-- Always include readme. This will handle no diff situation -->
+    	<include name="${build.source}/Readme.md"/>
+  	</fileset>
+  	<globmapper from="profiles*.profile" to="src/profiles/*.profile"/>
+	</copy>
+  </target>
+ 
+  <target name="copyDestructiveChanges" depends="clean,diff">
+	<copy todir="${build.tmpdir}">
+  	<sort>
+    	<fileset dir="${build.source}">
+      	<includesfile name="${build.tmpdir}/diff.txt"/>
+      	<!-- Always include readme. This will handle no diff situation -->
+      	<include name="${build.source}/Readme.md"/>
+    	</fileset>
+    	<reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">
+      	<name />
+    	</reverse>
+  	</sort>
+  	<firstmatchmapper>
+    	<globmapper from="destructiveChanges*.${org.target}.pre.xml" to="src/destructiveChangesPre.xml"/>
+    	<globmapper from="destructiveChanges*.${org.target}.post.xml" to="src/destructiveChangesPost.xml"/>
+  	</firstmatchmapper>
+	</copy>
+  </target>
+               
+  <target name="postDeploy">
+	<move todir="release/${org.target}/${build.release}" unless:true="${deploy.checkOnly}">
+  	<fileset dir="${build.tmpdir}"/>
+	</move>
+  </target>
+ 
+  <!--================ diff target ==========================-->
+ 
+  <target name="getrev" depends="clean">
+	<mkdir dir="${build.tmpdir}"/>
+	<exec executable="git" dir="${build.source}" output="${build.tmpdir}/ref" outputproperty="source.ref" >
+  	<arg value="describe"/>
+  	<arg value="--tags"/>
+  	<arg value="--match"/>
+      <arg value="*-${org.target}"/>
+  	<arg value="--abbrev=0"/>
+	</exec>
+  </target>
+ 
+  <target name="diff" depends="clean,getrev">
+	<mkdir dir="${build.tmpdir}"/>
+	<exec executable="git" dir="${build.source}" output="${build.tmpdir}/diff.txt" error="${build.tmpdir}/error.txt">
+  	<arg line="diff --name-only ${source.ref}" />
+	</exec>
+	<copy file="${build.tmpdir}/diff.txt" tofile="${build.tmpdir}/diff-meta.txt">
+  	<filterchain>
+    	<suffixlines suffix="-meta.xml"/>
+  	</filterchain>
+	</copy>
+  </target>
+ 
+  <!--================ createPackage target ==========================-->
+ 
+  <target name="clean">
+    <delete dir="${build.tmpdir}" quiet="true"/>
+  </target>
+ 
+  <target name="createPackage" depends="clean,diff,copyMetadata,copyProfiles,copyDestructiveChanges">
+	<loadfile srcfile="${build.source}/src/package.xml" property="package.head">
+  	<filterchain>
+    	<tailfilter lines="-1" skip="2"/>
+  	</filterchain>
+	</loadfile>
+	<loadfile srcfile="${build.source}/src/package.xml" property="package.tail">
+  	<filterchain>
+    	<tailfilter lines="2"/>
+  	</filterchain>
+	</loadfile>
+	<concat destfile="${build.tmpdir}/src/package.xml">
+  	<propertyresource name="package.head"/>
+  	<fileset file="${build.source}/profiles/profiles.xml"/>
+  	<propertyresource name="package.tail"/>
+	</concat>
+  </target>
+ 
+ 
+  <!--================ backup target ==========================-->
+  <target name="backup" depends="createPackage">
+	<echo level="verbose">
+  	Backing up ${org.target}
+  	username: ${org.username}
+  	serverurl: ${org.serverurl}
+	</echo>
+	<mkdir dir="${build.tmpdir}/backup" unless:true="${deploy.checkOnly}" />
+	<sf:retrieve
+ 	username="${org.username}"
+ 	password="${org.password}"
+ 	serverurl="${org.serverUrl}"
+ 	pollWaitMillis="10000"
+ 	maxPoll="5000"
+ 	unpackaged="${source.packageXml}"
+ 	retrieveTarget="${build.tmpdir}/backup"
+ 	unless:true="${deploy.checkOnly}"/>
+   </target>
+ 
+  <!--================ deployment sanity check ===================-->
+  <target name="checkOnlyConfirm" unless="${deploy.checkOnly}">
+	<antcall target="displayCheckMessage" />
+  </target>
+  <target name="displayCheckMessage" unless="${env.jenkins}">
+ 
+	<input message="Check only is false${line.separator}
+  	All changes are going to be deployed!${line.separator}
+  	Are you sure you want to continue (y/n)"
+  	validargs="y,n"
+  	addproperty="do.deploy"/>
+	<condition property="do.abort">
+  	<equals arg1="n" arg2="${do.deploy}"/>
+	</condition>
+	<fail if="do.abort">Deploy Aborted by user.</fail>
+  </target>
+ 
+  <!--================ primary execution deploy targes ==========================-->
+  <target name="deploy" depends="backup,createPackage">
+	<echo>
+  	Deploying to ${org.target}
+  	username: ${org.username}
+  	serverurl: ${org.serverUrl}
+  	checkOnly: ${deploy.checkOnly}
+	</echo>
+	<sf:deploy
+ 	username="${org.username}"
+ 	password="${org.password}"
+ 	serverurl="${org.serverUrl}"
+ 	pollWaitMillis="20000"
+ 	maxPoll="5000"
+ 	checkOnly="${deploy.checkOnly}"
+ 	testLevel="${deploy.testLevel}"
+ 	allowMissingFiles="true"
+ 	deployRoot="${build.tmpdir}/src"/>
+ 	<antcall target="postDeploy"/>
+  </target>
+ 
+ 
 </project>
+
