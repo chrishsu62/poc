@@ -214,8 +214,14 @@
 			</sequential>
 		</for>
     </target>
+	
+	<!--== to retrieve components not possible with bulkRetrieve -->
+	<target name="retrieve">
+        <mkdir dir="src"/>
+        <sf:retrieve username="${org.username}" password="${org.password}" serverurl="${org.serverUrl}" maxPoll="${maxPoll}" retrieveTarget="src" unpackaged="src/package.xml"/>
+    </target>
 		
-	<target name="git-push-to-master-remote" depends="init-refresh, bulkRetrieveIterate">
+	<target name="git-push-to-master-remote" depends="init-refresh, bulkRetrieveIterate, retrieve">
 		<git command="add" options="-A ."/>
 		<git command="commit" options='-m "Commit Refresh branch ${refresh.branch}"'/>
 		<git command="checkout" options="${target.branch}"/>
@@ -240,6 +246,7 @@
     </macrodef>
 	
 	<!--================ End of Refresh Git from Production  ==========================-->
+	
  
 </project>
 
