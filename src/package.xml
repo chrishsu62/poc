@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
+        <members>ChangePasswordController</members>
         <members>CleanUpRecords</members>
-        <members>CommunitiesLoginControllerTest</members>
+        <members>CommunitiesLandingControllerTest</members>
         <members>CommunitiesSelfRegConfirmController</members>
-        <members>HelloWorld4</members>
-        <members>MerchandiseManager</members>
-        <members>SampleDeployClass</members>
-        <members>TestDataFactory</members>
+        <members>ForgotPasswordController</members>
+        <members>HelloWorld2</members>
+        <members>SiteLoginController</members>
         <members>custom_perfectdatewizard</members>
         <name>ApexClass</name>
     </types>
