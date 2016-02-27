@@ -18,7 +18,7 @@
   <property name="build.tmpdir" value="release/tmp" />
  
   <!--================ deploy defaults ===============================-->
-  <property name="deploy.checkOnly" value="true"/>
+  <property name="deploy.checkOnly" value="false"/>
   <property name="deploy.allowMissing" value="true"/>
   <property name="deploy.testLevel" value="RunLocalTests"/>
   
