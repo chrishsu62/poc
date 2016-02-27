@@ -218,9 +218,9 @@
 	<target name="git-push-to-master-remote" depends="init-refresh, bulkRetrieveIterate">
 		<git command="add" options="-A ."/>
 		<git command="commit" options='-m "Commit Refresh branch ${refresh.branch}"'/>
-		<git command="checkout" options="{target.branch}"/>
-        <git command="merge" options="${refresh.branch} {target.branch}"/>
-        <git command="push" options="origin {target.branch}"/>
+		<git command="checkout" options="${target.branch}"/>
+        <git command="merge" options="${refresh.branch} ${target.branch}"/>
+        <git command="push" options="origin ${target.branch}"/>
     </target>
 	
 	<macrodef name="git">
