@@ -210,7 +210,7 @@
 		<for param="metadatatype" list="${list}" delimiter="${line.separator}">
 			<sequential>
 				<echo message="@{metadatatype}"/>
-				<sf:bulkRetrieve username="${org.username}" password="${org.password}" serverurl="${org.serverUrl}" maxPoll="${sf.maxPoll}" metadataType="${metadatatype}" retrieveTarget="${retrieve.target}"/>
+				<sf:bulkRetrieve username="${org.username}" password="${org.password}" serverurl="${org.serverUrl}" maxPoll="${sf.maxPoll}" metadataType="@{metadatatype}" retrieveTarget="${retrieve.target}"/>
 			</sequential>
 		</for>
     </target>
