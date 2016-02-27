@@ -31,7 +31,7 @@
 <!--  <property file="./${org.target}.properties"/> -->
   <property name="org.username" value="${username}" />
   <property name="org.password"  value="${password}" />
-  <property name="org.serverUrl"  value="${serverurl}" />
+  <property name="org.serverUrl"  value="${serverUrl}" />
   <property name="org.serverUrl" value="https://login.salesforce.com"/>
  
   <!--================ source defaults ===============================-->
