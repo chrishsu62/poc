@@ -4,6 +4,7 @@
  
  
   <tstamp/>
+  <property file="build.properties"/>
  
   <property environment="env"/>
   <property name="sf.maxPoll" value="${maxPoll}"/>
