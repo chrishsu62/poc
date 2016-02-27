@@ -4,7 +4,7 @@ public class HelloWorld {
         2/26/15 826pm after tag R1.0-develop
     */
     public static void sayYou() {
-        System.debug( 'You hellooooo 8:36pm' );
+        System.debug( 'You hellooooo 8:38pm' );
     }
 
     public void sayMe() {
