@@ -218,7 +218,7 @@
 	<!--== to retrieve components not possible with bulkRetrieve -->
 	<target name="retrieve">
         <mkdir dir="src"/>
-        <sf:retrieve username="${org.username}" password="${org.password}" serverurl="${org.serverUrl}" maxPoll="${maxPoll}" retrieveTarget="src" unpackaged="src/package.xml"/>
+        <sf:retrieve username="${org.username}" password="${org.password}" serverurl="${org.serverUrl}" maxPoll="${maxPoll}" pollWaitMillis="20000" retrieveTarget="src" unpackaged="src/package.xml"/>
     </target>
 		
 	<target name="git-push-to-master-remote" depends="init-refresh, bulkRetrieveIterate, retrieve">
