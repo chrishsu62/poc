@@ -202,7 +202,6 @@
 	<target name="init-refresh">
 		<git command="checkout" options="master"/>
 		<git command="branch -D" options="${refresh.branch}"/>
-		<git command="branch -D" options="${refresh.branch}"/>
 		<git command="checkout -b" options="${refresh.branch}"/>
 	</target>
 	
@@ -216,12 +215,10 @@
 		</for>
     </target>
 		
-	<target name="git-push-to-master-remote" depends="init-refresh">
+	<target name="git-push-to-master-remote" depends="init-refresh, bulkRetrieveIterate">
 		<git command="add" options="-A ."/>
-		<git command="commit" options='-m "Commit Refresh branch ${source.git.refresh.branch}"'/>
-		<antcall target="git-checkout-master"/>
-        <git command="merge" options="${refresh.branch} {target.branch}"/>
-		<antcall target="git-checkout-master"/>
+		<git command="commit" options='-m "Commit Refresh branch ${refresh.branch}"'/>
+		<git command="checkout" options="{target.branch}"/>
         <git command="merge" options="${refresh.branch} {target.branch}"/>
         <git command="push" options="origin {target.branch}"/>
     </target>
