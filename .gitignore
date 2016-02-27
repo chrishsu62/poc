@@ -1,4 +1,8 @@
 /Referenced Packages/
+<<<<<<< HEAD
 /salesforce.schema
 /build.xml.jtone
 /build.xml.orig
+=======
+/targetDeploy/
+>>>>>>> c87466f0190bfebed1e24752a67c264695c7a470
