@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Account Industries</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>AccountIndustries</value>
+    </caseValues>
+    <fields>
+        <label><!-- Accounts --></label>
+        <name>Accounts__c</name>
+        <relationshipLabel><!-- Industries --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Industry --></label>
+        <name>Industries__c</name>
+        <relationshipLabel><!-- Accounts --></relationshipLabel>
+    </fields>
+    <startsWith>Consonant</startsWith>
+</CustomObjectTranslation>
